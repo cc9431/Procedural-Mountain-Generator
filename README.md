@@ -5,4 +5,6 @@ Mountains are created by generating pseudo-random sin wave functions and combini
 
 Example image:
 
-<img src="/Outputs/First%20Attempt/eight_sin/four_ranges.png" width="350"/>
+<img src="/Outputs/First%20Attempt/one_sin/four_ranges.png"/>
+<img src="/Outputs/First%20Attempt/four_sin/four_ranges.png"/>
+<img src="/Outputs/First%20Attempt/eight_sin/four_ranges.png"/>

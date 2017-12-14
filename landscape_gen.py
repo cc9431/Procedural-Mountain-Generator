@@ -29,28 +29,28 @@ class Generator(object):
             print("Whoops! First paramater must be greater than zero")
             exit(-1)
         
-        ##-=-=-=- Set Random Seed =-=-=-=-=-=-=-=-=-=##
+        ##-=-=-=- Set Random Seed -=-=-=-=-=-=-=-=-=-##
         self.rand_seed = int(seed)
         random.seed(self.rand_seed)
 
         ##-=-=-=- Tweakable Values -=-=-=-=-=-=-=-=-=##
-        self.num_ranges     = 2             # Number of mountain ranges to be generated
+        self.num_ranges     = 3             # Number of mountain ranges to be generated
         self.num_sines      = 8             # Number of sin values generated for each mountain range
-        self.image_height   = 100           # Consider this the amount of "detail" in the mountains
-        self.shadow_angle   = 2.5           # The angle of the shadow on the mountains (2.5 seems to be best)
+        self.image_height   = 200           # Consider this the amount of "detail" in the mountains
+        self.shadow_angle   = 2.5           # The angle of the shadow on the mountains
 
         ##-=-=-=- Constant Values -=-=-=-=-=-=-=-=-=##
         self.c              = 25
         self.k              = 0.05
-        self.color          = [50, 50 + random.randint(0, 150), 150 + random.randint(0, 55)]
-        
-        ##-=-=-=- Programatically Set Values =-=-=-=##
+        self.color          = [50, 150 + random.randint(0, 100), 150 + random.randint(0, 55)]
+
+        ##-=-=-=- Programatically Set Values -=-=-=-##
         self.image_width    = int(width_factor * self.image_height + (0.05 * math.pi))
         self.data           = []
 
         ##-=-=-=- Creation -=-=-=-=-=-=-=-=-=-=-=-=-##
-        self.generateRanges()
-        self.createImage()
+        self.generate_ranges()
+        self.create_image()
         if prnt:
             print(str(self))
 
@@ -63,18 +63,18 @@ class Generator(object):
 
     ##-=-=-=- Setters -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-##
 
-    def generateRanges(self):
+    def generate_ranges(self):
         '''Generate random mountains'''
-        self.data = [self.randomMountain() for r in range(self.num_ranges)]
+        self.data = [self.random_mountain() for r in range(self.num_ranges)]
 
-    def randomMountain(self):
+    def random_mountain(self):
         '''Generate random sin waves for each mountain'''
         sinVars = []
         for s in range(self.num_sines):
-            sinVars.append(self.randomSinFunc())
+            sinVars.append(self.random_sin_func())
         return sinVars
 
-    def randomSinFunc(self):
+    def random_sin_func(self):
         '''Create pseudo-random variables for a sin wave'''
         frequency   = random.uniform(1, 10)
         amplitude   = random.uniform(-self.c/frequency, self.c/frequency)
@@ -84,7 +84,7 @@ class Generator(object):
 
     ##-=-=-=- Getters -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-##
 
-    def getHeightData(self, x, m=0):
+    def get_height_data(self, x, m=0):
         '''Return the y of mountain given x value and which range'''
         rnge    = self.data[m]
         output  = 0
@@ -100,7 +100,7 @@ class Generator(object):
 
         return output + extra + noise
 
-    def getDerivativeHeightData(self, x, m=0):
+    def get_derivative_height_data(self, x, m=0):
         '''Return the derivative of mountain slope given x value'''
         rnge    = self.data[m]
         output  = 0
@@ -116,44 +116,51 @@ class Generator(object):
 
         return output
 
-    ##-=-=-=- Image Creator =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=##
+    def get_highest_point(self, x):
+        highest_val = 0
+        for rnge in range(self.num_ranges):
+            val = self.get_height_data(x, rnge)
+            if val > highest_val:
+                highest_val = val
+        return highest_val
 
-    def createImage(self):
+    def calculate_color(self, y, m, shadow):
+        desaturated_color = list(self.color)
+        desaturated_color[0] += (m * 25) - shadow
+        desaturated_color[1] = desaturated_color[0]
+        desaturated_color[2] -= int(y / 1.5 - 30) + shadow
+        return tuple(desaturated_color)
+
+
+    ##-=-=-=- Image Creator -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-##
+
+    def create_image(self):
         '''Turn data generated from setters into pixels'''
         img = Image.new("RGB", (self.image_width, self.image_height), "white")
         draw = ImageDraw.Draw(img)
         color = tuple(self.color)
-        
+
         for x in range(self.image_width):
             m_val       = 0
-            highest_val = 0
-            for rnge in range(self.num_ranges):
-                val = self.getHeightData(x, rnge)
-                if val > highest_val:
-                    highest_val = val
+            highest_val = self.get_highest_point(x)
             for y in range(self.image_height):
-                mountain_height = self.getHeightData(x, m_val)
-
+                mountain_height = self.get_height_data(x, m_val)
                 if y > highest_val:
                     if random.random() > 0.99:
                         extra = random.randint(-55, 55)
                         color = (200 + extra, 200 + extra, 200 + extra)
                     else:
-                        color = (50, 30, 40)
+                        color = (30, 30, 40)
                 elif y >= mountain_height and m_val < self.num_ranges - 1:
                     m_val += 1
                 else:
-                    #dist_to_peak = self.shadow_angle * (y - mountain_height) / float(self.image_height)
                     dist_to_peak = (y - mountain_height) / self.shadow_angle
-                    if self.getDerivativeHeightData(x - dist_to_peak, m_val) < 0:
+                    if self.get_derivative_height_data(x - dist_to_peak, m_val) < 0:
                         shadow = 0
                     else:
-                        shadow = 10
-                    desaturatedColor = list(self.color)
-                    desaturatedColor[0] += (m_val * 20) - shadow
-                    desaturatedColor[1] = desaturatedColor[0]
-                    desaturatedColor[2] -= int(y / 1.5 - 30) + shadow
-                    color = tuple(desaturatedColor)
+                        shadow = 20
+
+                    color = self.calculate_color(y, m_val, shadow)
 
                 x_y = x,(self.image_height - y - 1)
                 draw.point(x_y, color)

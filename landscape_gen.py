@@ -35,18 +35,19 @@ class Generator(object):
 
         ##-=-=-=- Tweakable Values -=-=-=-=-=-=-=-=-=##
         self.num_ranges     = 3             # Number of mountain ranges to be generated
-        self.num_sines      = 8             # Number of sin values generated for each mountain range
-        self.image_height   = 200           # Consider this the amount of "detail" in the mountains
+        self.num_sines      = 10            # Number of sin values generated for each mountain range
+        self.image_height   = 150           # Consider this the amount of "detail" in the mountains
         self.shadow_angle   = 2.5           # The angle of the shadow on the mountains
 
         ##-=-=-=- Constant Values -=-=-=-=-=-=-=-=-=##
-        self.c              = 25
-        self.k              = 0.05
-        self.color          = [50, 150 + random.randint(0, 100), 150 + random.randint(0, 55)]
+        self.c              = 30
+        self.k              = 0.04
+        self.color          = [random.randint(0, 150), random.randint(0, 150), random.randint(0, 150)]
 
         ##-=-=-=- Programatically Set Values -=-=-=-##
-        self.image_width    = int(width_factor * self.image_height + (0.05 * math.pi))
+        self.image_width    = int(width_factor * self.image_height)
         self.data           = []
+        self.output         = []
 
         ##-=-=-=- Creation -=-=-=-=-=-=-=-=-=-=-=-=-##
         self.generate_ranges()
@@ -69,10 +70,10 @@ class Generator(object):
 
     def random_mountain(self):
         '''Generate random sin waves for each mountain'''
-        sinVars = []
+        sin_vars = []
         for s in range(self.num_sines):
-            sinVars.append(self.random_sin_func())
-        return sinVars
+            sin_vars.append(self.random_sin_func())
+        return sin_vars
 
     def random_sin_func(self):
         '''Create pseudo-random variables for a sin wave'''
@@ -105,7 +106,6 @@ class Generator(object):
         rnge    = self.data[m]
         output  = 0
         extra   = (self.image_height / (self.num_ranges + 1) * (m + 1))
-        noise   = random.randint(0, 4)
 
         for sine in range(self.num_sines):
             a       = rnge[sine][0]
@@ -125,10 +125,14 @@ class Generator(object):
         return highest_val
 
     def calculate_color(self, y, m, shadow):
+        '''Calculate color based on mountain number, slope, and height'''
         desaturated_color = list(self.color)
-        desaturated_color[0] += (m * 25) - shadow
-        desaturated_color[1] = desaturated_color[0]
-        desaturated_color[2] -= int(y / 1.5 - 30) + shadow
+        change = int(y * 150 / self.image_height) - (shadow + (m * 50))
+
+        desaturated_color[0] += change
+        desaturated_color[1] += change
+        desaturated_color[2] += change
+
         return tuple(desaturated_color)
 
 
@@ -169,10 +173,13 @@ class Generator(object):
 ##-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=##
 
 def main():
+    timer = time.time()
     num = int(sys.argv[1])
     if len(sys.argv) > 2:
-        g = Generator(num, sys.argv[2])
+        g = Generator(num, sys.argv[2], prnt=True)
     else:
-        g = Generator(num)
+        g = Generator(num, prnt=True)
+
+    print(time.time() - timer)
 
 main()

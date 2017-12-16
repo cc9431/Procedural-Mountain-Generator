@@ -5,9 +5,9 @@ Mountains are created by generating pseudo-random sin wave functions and combini
 
 How the amount of random sin waves affects mountain's "natural" look:
 
-<img src="/Outputs/sins/one_sin/four_ranges.png"/>
-<img src="/Outputs/sins/four_sin/four_ranges.png"/>
-<img src="/Outputs/sins/eight_sin/four_ranges.png"/>
+<img src="/Outputs/one_sin.png"/>
+<img src="/Outputs/four_sin.png"/>
+<img src="/Outputs/eight_sin.png"/>
 
 Random color implementation:
 

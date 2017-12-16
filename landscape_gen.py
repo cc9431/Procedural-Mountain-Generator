@@ -35,7 +35,7 @@ class Generator(object):
 
         ##-=-=-=- Tweakable Values -=-=-=-=-=-=-=-=-=##
         self.num_ranges     = 3             # Number of mountain ranges to be generated
-        self.num_sines      = 10            # Number of sin values generated for each mountain range
+        self.num_sines      = 8            # Number of sin values generated for each mountain range
         self.image_height   = 150           # Consider this the amount of "detail" in the mountains
         self.shadow_angle   = 2.5           # The angle of the shadow on the mountains
 

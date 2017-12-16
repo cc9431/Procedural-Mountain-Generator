@@ -10,12 +10,12 @@ import sys
 import time
 import random
 import math
-from PIL import Image, ImageDraw
+import numpy
+from PIL import Image
 
 ##-=-=-=- TODO =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=##
     #//::moon
     #//:clouds?
-    #//:random color?
 
 class Generator(object):
     '''Class for generating procedural pixel art'''
@@ -35,25 +35,28 @@ class Generator(object):
 
         ##-=-=-=- Tweakable Values -=-=-=-=-=-=-=-=-=##
         self.num_ranges     = 3             # Number of mountain ranges to be generated
-        self.num_sines      = 8            # Number of sin values generated for each mountain range
+        self.num_sines      = 10            # Number of sin values generated for each mountain range
         self.image_height   = 150           # Consider this the amount of "detail" in the mountains
         self.shadow_angle   = 2.5           # The angle of the shadow on the mountains
 
         ##-=-=-=- Constant Values -=-=-=-=-=-=-=-=-=##
-        self.c              = 30
+        self.constant       = 30
         self.k              = 0.04
-        self.color          = [random.randint(0, 150), random.randint(0, 150), random.randint(0, 150)]
+        self.color          = [random.randint(0, 150),
+                               random.randint(0, 150),
+                               random.randint(0, 150)]
 
         ##-=-=-=- Programatically Set Values -=-=-=-##
         self.image_width    = int(width_factor * self.image_height)
         self.data           = []
-        self.output         = []
+        self.output         = [[(30, 30, 40) for x in range(self.image_width)]
+                               for y in range(self.image_height)]
 
         ##-=-=-=- Creation -=-=-=-=-=-=-=-=-=-=-=-=-##
         self.generate_ranges()
         self.create_image()
         if prnt:
-            print(str(self))
+            print(self)
 
     def __str__(self):
         '''String representation of Generator'''
@@ -78,7 +81,7 @@ class Generator(object):
     def random_sin_func(self):
         '''Create pseudo-random variables for a sin wave'''
         frequency   = random.uniform(1, 10)
-        amplitude   = random.uniform(-self.c/frequency, self.c/frequency)
+        amplitude   = random.uniform(-self.constant/frequency, self.constant/frequency)
         phase       = random.uniform(0, 2 * math.pi)
         variables   = [amplitude, frequency, phase]
         return variables
@@ -129,9 +132,9 @@ class Generator(object):
         desaturated_color = list(self.color)
         change = int(y * 150 / self.image_height) - (shadow + (m * 50))
 
-        desaturated_color[0] += change
-        desaturated_color[1] += change
-        desaturated_color[2] += change
+        desaturated_color[0] = max(desaturated_color[0] + change, 0)
+        desaturated_color[1] = max(desaturated_color[1] + change, 0)
+        desaturated_color[2] = max(desaturated_color[2] + change, 0)
 
         return tuple(desaturated_color)
 
@@ -140,13 +143,14 @@ class Generator(object):
 
     def create_image(self):
         '''Turn data generated from setters into pixels'''
-        img = Image.new("RGB", (self.image_width, self.image_height), "white")
-        draw = ImageDraw.Draw(img)
+        #img = Image.new("RGB", (self.image_width, self.image_height), "white")
+        #draw = ImageDraw.Draw(img)
         color = tuple(self.color)
 
         for x in range(self.image_width):
             m_val       = 0
             highest_val = self.get_highest_point(x)
+
             for y in range(self.image_height):
                 mountain_height = self.get_height_data(x, m_val)
                 if y > highest_val:
@@ -154,7 +158,7 @@ class Generator(object):
                         extra = random.randint(-55, 55)
                         color = (200 + extra, 200 + extra, 200 + extra)
                     else:
-                        color = (30, 30, 40)
+                        continue
                 elif y >= mountain_height and m_val < self.num_ranges - 1:
                     m_val += 1
                 else:
@@ -165,14 +169,21 @@ class Generator(object):
                         shadow = 20
 
                     color = self.calculate_color(y, m_val, shadow)
-
-                x_y = x,(self.image_height - y - 1)
-                draw.point(x_y, color)
-        img.show()
+                self.output[self.image_height - y - 1][x] = color
+                #x_y = x,(self.image_height - y - 1)
+                #draw.point(x_y, color)
+        self.output = numpy.array(self.output, dtype=numpy.uint8)
+        new_image = Image.fromarray(self.output)
+        new_image.show()
 
 ##-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=##
 
 def main():
+    '''Main function!'''
+    if len(sys.argv) == 1:
+        print ('Whoops! Please provide a width factor (and optionally a seed value)')
+        exit(-1)
+
     timer = time.time()
     num = int(sys.argv[1])
     if len(sys.argv) > 2:
@@ -180,6 +191,6 @@ def main():
     else:
         g = Generator(num, prnt=True)
 
-    print(time.time() - timer)
+    print (time.time() - timer)
 
 main()

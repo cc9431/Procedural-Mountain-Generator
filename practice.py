@@ -1,13 +1,22 @@
-import numpy
-import random
-from PIL import Image
-r = (random.randrange(0, 255))
-g = (random.randrange(0, 255))
-b = (random.randrange(0, 255))
+from noise import perlin
 
-output = [[(r, g, b) for x in range(100)] for y in range(100)]
+#color = [0, 0, 0]
+Xsize = 100
+Ysize = 10
+res  = 4.0
+pnf  = perlin.SimplexNoise(period=6)
+pnf.randomize()
+img = ""
 
-output = numpy.array(output, dtype=numpy.uint8)
+for y in range(Ysize):
+	for x in range(Xsize):
+		n = pnf.noise2(y / res, x / res)
+		symbol = int(n / 2 * 255 + 0.5)
+		if symbol > 0:
+			img += "#"
+		else:
+			img += "."
+		
+	img += "\n"
 
-new_image = Image.fromarray(output)
-new_image.show()
+print img

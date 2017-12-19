@@ -11,7 +11,9 @@ import time
 import random
 import math
 import numpy
+
 from PIL import Image
+from noise import perlin
 
 ##-=-=-=- TODO =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=##
     #//::moon
@@ -28,7 +30,7 @@ class Generator(object):
         if width_factor <= 0:
             print("Whoops! First paramater must be greater than zero")
             exit(-1)
-        
+
         ##-=-=-=- Set Random Seed -=-=-=-=-=-=-=-=-=-##
         self.rand_seed = int(seed)
         random.seed(self.rand_seed)
@@ -54,7 +56,9 @@ class Generator(object):
 
         ##-=-=-=- Creation -=-=-=-=-=-=-=-=-=-=-=-=-##
         self.generate_ranges()
-        self.create_image()
+        self.create_mountains()
+        self.create_sky()
+        self.show_image()
         if prnt:
             print(self)
 
@@ -139,9 +143,9 @@ class Generator(object):
         return tuple(desaturated_color)
 
 
-    ##-=-=-=- Image Creator -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-##
+    ##-=-=-=- Image Functions -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-##
 
-    def create_image(self):
+    def create_mountains(self):
         '''Turn data generated from setters into pixels'''
         #img = Image.new("RGB", (self.image_width, self.image_height), "white")
         #draw = ImageDraw.Draw(img)
@@ -149,17 +153,11 @@ class Generator(object):
 
         for x in range(self.image_width):
             m_val       = 0
-            highest_val = self.get_highest_point(x)
+            highest_val = int(self.get_highest_point(x))
 
-            for y in range(self.image_height):
+            for y in range(highest_val):
                 mountain_height = self.get_height_data(x, m_val)
-                if y > highest_val:
-                    if random.random() > 0.99:
-                        extra = random.randint(-55, 55)
-                        color = (200 + extra, 200 + extra, 200 + extra)
-                    else:
-                        continue
-                elif y >= mountain_height and m_val < self.num_ranges - 1:
+                if y >= mountain_height and m_val < self.num_ranges - 1:
                     m_val += 1
                 else:
                     dist_to_peak = (y - mountain_height) / self.shadow_angle
@@ -167,14 +165,25 @@ class Generator(object):
                         shadow = 0
                     else:
                         shadow = 20
+                color = self.calculate_color(y, m_val, shadow)
+                self.output[highest_val - y - 1][x] = color
 
-                    color = self.calculate_color(y, m_val, shadow)
-                self.output[self.image_height - y - 1][x] = color
-                #x_y = x,(self.image_height - y - 1)
-                #draw.point(x_y, color)
+    def create_sky(self):
+        '''Use perlin noise to create a cloudy sky'''
+        for x in range(self.image_width):
+            highest_val = int(self.get_highest_point(x))
+            for y in range(self.image_height - highest_val):
+                if random.random() > 0.99:
+                    extra = random.randint(-55, 55)
+                    color = (200 + extra, 200 + extra, 200 + extra)
+                    self.output[y] = color
+
+    def show_image(self):
+        '''Turn current data into an image'''
         self.output = numpy.array(self.output, dtype=numpy.uint8)
         new_image = Image.fromarray(self.output)
         new_image.show()
+
 
 ##-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=##
 

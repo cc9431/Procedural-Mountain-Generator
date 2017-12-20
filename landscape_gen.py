@@ -113,7 +113,7 @@ class Generator(object):
         rnge    = self.data[m]
         output  = 0
         extra   = (self.image_height / (self.num_ranges + 1) * (m + 1))
-
+        #//: I think this is where there's some stuff happening that is framing the mountains weirdly
         for sine in range(self.num_sines):
             a       = rnge[sine][0]
             f       = rnge[sine][1]
@@ -166,20 +166,29 @@ class Generator(object):
                     else:
                         shadow = 20
                 color = self.calculate_color(y, m_val, shadow)
-                self.output[highest_val - y - 1][x] = color
+                self.output[self.image_height - y - 1][x] = color
 
     def create_sky(self):
         '''Use perlin noise to create a cloudy sky'''
+        pnf = perlin.SimplexNoise()
+        pnf.randomize()
+        res = 20.0
         for x in range(self.image_width):
             highest_val = int(self.get_highest_point(x))
             for y in range(self.image_height - highest_val):
                 if random.random() > 0.99:
                     extra = random.randint(-55, 55)
                     color = (200 + extra, 200 + extra, 200 + extra)
-                    self.output[y] = color
+                    self.output[y][x] = color
+                else:
+                    n = pnf.noise2(y / res, x / res)    #//:: Figure out best ratio of size and resolution
+                    cloudy = int(n / 2 * 50 + 0.5)
+                    if cloudy > 0:
+                        color = (30 + cloudy, 30 + cloudy, 40 + cloudy)
+                        self.output[y][x] = color
 
     def show_image(self):
-        '''Turn current data into an image'''
+        '''Turn output data into an image'''
         self.output = numpy.array(self.output, dtype=numpy.uint8)
         new_image = Image.fromarray(self.output)
         new_image.show()

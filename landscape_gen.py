@@ -180,7 +180,7 @@ class Generator(object):
                     self.output[y][x] = color
                 else:
                     n = pnf.noise2(y / res * 30, x / res)
-                    cloudy = int(n / 2 * 40 + 0.5)
+                    cloudy = int(n / 2 * 100 + 0.5)
                     if cloudy > 0:
                         color = (30 + cloudy, 30 + cloudy, 40 + cloudy)
                         self.output[y][x] = color

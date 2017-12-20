@@ -17,7 +17,6 @@ from noise import perlin
 
 ##-=-=-=- TODO =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=##
     #//::moon
-    #//:clouds?
 
 class Generator(object):
     '''Class for generating procedural pixel art'''
@@ -97,7 +96,7 @@ class Generator(object):
         rnge    = self.data[m]
         output  = 0
         extra   = (self.image_height / (self.num_ranges + 1) * (m + 1))
-        noise   = random.randint(0, 4)
+        noise   = random.randint(0, 2)
 
         for sine in range(self.num_sines):
             a       = rnge[sine][0]
@@ -112,7 +111,7 @@ class Generator(object):
         '''Return the derivative of mountain slope given x value'''
         rnge    = self.data[m]
         output  = 0
-        extra   = (self.image_height / (self.num_ranges + 1) * (m + 1))
+        noise   = random.randint(0, 1)
         #//: I think this is where there's some stuff happening that is framing the mountains weirdly
         for sine in range(self.num_sines):
             a       = rnge[sine][0]
@@ -159,12 +158,11 @@ class Generator(object):
                 mountain_height = self.get_height_data(x, m_val)
                 if y >= mountain_height and m_val < self.num_ranges - 1:
                     m_val += 1
+                dist_to_peak = (y - mountain_height) / self.shadow_angle
+                if self.get_derivative_height_data(x - dist_to_peak, m_val) < 0:
+                    shadow = 0
                 else:
-                    dist_to_peak = (y - mountain_height) / self.shadow_angle
-                    if self.get_derivative_height_data(x - dist_to_peak, m_val) < 0:
-                        shadow = 0
-                    else:
-                        shadow = 20
+                    shadow = 20
                 color = self.calculate_color(y, m_val, shadow)
                 self.output[self.image_height - y - 1][x] = color
 
@@ -172,7 +170,7 @@ class Generator(object):
         '''Use perlin noise to create a cloudy sky'''
         pnf = perlin.SimplexNoise()
         pnf.randomize()
-        res = 20.0
+        res = 200.0
         for x in range(self.image_width):
             highest_val = int(self.get_highest_point(x))
             for y in range(self.image_height - highest_val):
@@ -181,8 +179,8 @@ class Generator(object):
                     color = (200 + extra, 200 + extra, 200 + extra)
                     self.output[y][x] = color
                 else:
-                    n = pnf.noise2(y / res, x / res)    #//:: Figure out best ratio of size and resolution
-                    cloudy = int(n / 2 * 50 + 0.5)
+                    n = pnf.noise2(y / res * 30, x / res)
+                    cloudy = int(n / 2 * 40 + 0.5)
                     if cloudy > 0:
                         color = (30 + cloudy, 30 + cloudy, 40 + cloudy)
                         self.output[y][x] = color

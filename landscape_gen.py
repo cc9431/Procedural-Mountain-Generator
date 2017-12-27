@@ -1,9 +1,8 @@
 '''
-Cybergraphics Final Art Project - procedural mountain range pixel art creator
+procedural mountain range pixel art creator
 
 Charles Calder
-December 22nd
-ART 100
+December 22nd 2017
 '''
 
 import sys
@@ -16,7 +15,10 @@ from PIL import Image
 from noise import perlin
 
 ##-=-=-=- TODO =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=##
-    #//::moon
+    #//::
+        # moon (maybe start with moon generator then put that into the image)
+    #//:
+        # I think the derivative function is where there's some stuff happening that is framing the mountains weirdly
 
 class Generator(object):
     '''Class for generating procedural pixel art'''
@@ -41,22 +43,24 @@ class Generator(object):
         self.shadow_angle   = 2.5           # The angle of the shadow on the mountains
 
         ##-=-=-=- Constant Values -=-=-=-=-=-=-=-=-=##
-        self.constant       = 30
-        self.k              = 0.04
+        self.constant       = 30            # Overall amplitude of superpositioned waves
+        self.k              = 0.04          # Streching factor of mountains
+        self.pnf = perlin.SimplexNoise()    # Initialize perlin noise creator
+        self.sky_color      = [30, 30, 40]  # Set Color of sky and mountains
         self.color          = [random.randint(0, 150),
                                random.randint(0, 150),
                                random.randint(0, 150)]
 
         ##-=-=-=- Programatically Set Values -=-=-=-##
         self.image_width    = int(width_factor * self.image_height)
-        self.data           = []
-        self.output         = [[(30, 30, 40) for x in range(self.image_width)]
+        self.data           = list          # Stored variables of sine wave functions
+        self.output         = [[tuple(self.sky_color) for x in range(self.image_width)]
                                for y in range(self.image_height)]
 
         ##-=-=-=- Creation -=-=-=-=-=-=-=-=-=-=-=-=-##
-        self.generate_ranges()
-        self.create_mountains()
-        self.create_sky()
+        self.pnf.randomize()                # Randomize perlin noise
+        self.generate_ranges()              # Generate variables for sine functions
+        self.create_scene()                 # Assign values to pixels
         self.show_image()
         if prnt:
             print(self)
@@ -112,7 +116,7 @@ class Generator(object):
         rnge    = self.data[m]
         output  = 0
         noise   = random.randint(0, 1)
-        #//: I think this is where there's some stuff happening that is framing the mountains weirdly
+
         for sine in range(self.num_sines):
             a       = rnge[sine][0]
             f       = rnge[sine][1]
@@ -123,6 +127,7 @@ class Generator(object):
         return output
 
     def get_highest_point(self, x):
+        '''Return the highest mountain point for a given column'''
         highest_val = 0
         for rnge in range(self.num_ranges):
             val = self.get_height_data(x, rnge)
@@ -144,7 +149,7 @@ class Generator(object):
 
     ##-=-=-=- Image Functions -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-##
 
-    def create_mountains(self):
+    def create_scene(self):
         '''Turn data generated from setters into pixels'''
         #img = Image.new("RGB", (self.image_width, self.image_height), "white")
         #draw = ImageDraw.Draw(img)
@@ -154,43 +159,44 @@ class Generator(object):
             m_val       = 0
             highest_val = int(self.get_highest_point(x))
 
-            for y in range(highest_val):
+            for y in range(self.image_height):
                 mountain_height = self.get_height_data(x, m_val)
-                if y >= mountain_height and m_val < self.num_ranges - 1:
-                    m_val += 1
-                dist_to_peak = (y - mountain_height) / self.shadow_angle
-                if self.get_derivative_height_data(x - dist_to_peak, m_val) < 0:
-                    shadow = 0
+
+                if y > highest_val:
+                    color = self.create_sky(x, y)
                 else:
-                    shadow = 20
-                color = self.calculate_color(y, m_val, shadow)
+                    if y >= mountain_height and m_val < self.num_ranges - 1:
+                        m_val += 1
+                    dist_to_peak = (y - mountain_height) / self.shadow_angle
+                    if self.get_derivative_height_data(x - dist_to_peak, m_val) < 0:
+                        shadow = 0
+                    else:
+                        shadow = 20
+                    color = self.calculate_color(y, m_val, shadow)
+
                 self.output[self.image_height - y - 1][x] = color
 
-    def create_sky(self):
-        '''Use perlin noise to create a cloudy sky'''
-        pnf = perlin.SimplexNoise()
-        pnf.randomize()
-        res = 200.0
-        for x in range(self.image_width):
-            highest_val = int(self.get_highest_point(x))
-            for y in range(self.image_height - highest_val):
-                if random.random() > 0.99:
-                    extra = random.randint(-55, 55)
-                    color = (200 + extra, 200 + extra, 200 + extra)
-                    self.output[y][x] = color
-                else:
-                    n = pnf.noise2(y / res * 30, x / res)
-                    cloudy = int(n / 2 * 100 + 0.5)
-                    if cloudy > 0:
-                        color = (30 + cloudy, 30 + cloudy, 40 + cloudy)
-                        self.output[y][x] = color
+    def create_sky(self, x, y):
+        '''Randomly place stars and use perlin noise for clouds'''
+        res = 250.0
+        if random.random() > 0.993:
+            extra = random.randint(-55, 55)
+            color = (200 + extra, 200 + extra, 200 + extra)
+            return color
+        else:
+            color = list(self.sky_color)
+            noise = random.randint(0, 4)
+            prln = self.pnf.noise2(y / res * 15, x / res)
+            cloudy = int(prln / 2 * 100)
+            if cloudy > 0:
+                color = [col + cloudy + noise for col in color]
+            return tuple(color)
 
     def show_image(self):
         '''Turn output data into an image'''
         self.output = numpy.array(self.output, dtype=numpy.uint8)
         new_image = Image.fromarray(self.output)
         new_image.show()
-
 
 ##-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=##
 

@@ -10,13 +10,12 @@ import time
 import random
 import math
 import numpy
+import moon
 
 from PIL import Image
 from noise import perlin
 
 ##-=-=-=- TODO =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=##
-    #//::
-        # moon (maybe start with moon generator then put that into the image)
     #//:
         # I think the derivative function is where there's some stuff happening that is framing the mountains weirdly
 
@@ -26,7 +25,7 @@ class Generator(object):
     ##-=-=-=- Class Functions -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-##
 
     def __init__(self, width_factor, seed=time.time(), prnt=False):
-        '''Initialize random variable and generate image'''
+        '''Initialize random variables and generate image'''
 
         if width_factor <= 0:
             print("Whoops! First paramater must be greater than zero")
@@ -50,6 +49,7 @@ class Generator(object):
         self.color          = [random.randint(0, 150),
                                random.randint(0, 150),
                                random.randint(0, 150)]
+        self.moon           = moon.Moon(15)
 
         ##-=-=-=- Programatically Set Values -=-=-=-##
         self.image_width    = int(width_factor * self.image_height)
@@ -60,6 +60,7 @@ class Generator(object):
         ##-=-=-=- Creation -=-=-=-=-=-=-=-=-=-=-=-=-##
         self.pnf.randomize()                # Randomize perlin noise
         self.generate_ranges()              # Generate variables for sine functions
+        self.create_moon(random.randint(0, self.image_width - 10), 2)
         self.create_scene()                 # Assign values to pixels
         self.show_image()
         if prnt:
@@ -179,18 +180,28 @@ class Generator(object):
     def create_sky(self, x, y):
         '''Randomly place stars and use perlin noise for clouds'''
         res = 250.0
-        if random.random() > 0.993:
+        curr = self.output[self.image_height - y - 1][x]
+        if random.random() > 0.993 and curr == tuple(self.sky_color):
             extra = random.randint(-55, 55)
             color = (200 + extra, 200 + extra, 200 + extra)
             return color
         else:
-            color = list(self.sky_color)
+            color = list(curr)
             noise = random.randint(0, 4)
             prln = self.pnf.noise2(y / res * 15, x / res)
             cloudy = int(prln / 2 * 100)
-            if cloudy > 0:
+            if cloudy > 1:
                 color = [col + cloudy + noise for col in color]
             return tuple(color)
+
+    def create_moon(self, x, y):
+        '''Paste moon into scene'''
+        moon_data = self.moon.get()
+        length = self.moon.length()
+        for yval in range(length):
+            for xval in range(length):
+                if xval + x < len(self.output):
+                    self.output[yval + y][xval + x] = moon_data[yval][xval]
 
     def show_image(self):
         '''Turn output data into an image'''

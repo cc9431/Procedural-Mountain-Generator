@@ -49,7 +49,7 @@ class Generator(object):
         self.color          = [random.randint(0, 150),
                                random.randint(0, 150),
                                random.randint(0, 150)]
-        self.moon           = moon.Moon(15)
+        self.moon           = moon.Moon(15, self.rand_seed)
 
         ##-=-=-=- Programatically Set Values -=-=-=-##
         self.image_width    = int(width_factor * self.image_height)

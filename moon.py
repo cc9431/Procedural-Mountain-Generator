@@ -67,8 +67,9 @@ class Moon(object):
     def generate_craters(self):
         '''Calculate where craters should be and how dark they are'''
         for freq in range(self.crater_freq):
-            x   = random.randint(self.center[0] - self.size, self.center[0] + self.size)
-            y   = random.randint(self.center[1] - self.size, self.center[1] + self.size)
+
+            x   = random.randint(int(self.center[0] - self.size), int(self.center[0] + self.size))
+            y   = random.randint(int(self.center[1] - self.size), int(self.center[1] + self.size))
             sz  = random.randint(self.size / 5, self.size / 2)
             col = random.randint(10, 30)
             self.craters.append([[x, y], sz, col])
@@ -96,7 +97,7 @@ class Moon(object):
                         noisey = random.randint(1, 2)
                         if self.in_radius(x + noisex, y + noisey, crater[0], crater[1]):
                             extra = random.randint(0, 10)
-                            color = [col - crater[2] + extra for col in color]
+                            color = [max(col - crater[2], 0) + extra for col in color]
                 else:
                     color = self.sky_color
                 self.output[y][x] = tuple(color)

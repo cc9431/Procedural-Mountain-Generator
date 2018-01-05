@@ -6,14 +6,17 @@ Mountains are created by generating pseudo-random sin wave functions and combini
 How the amount of random sin waves affects mountain's "natural" look:
 
 1 sin wave
-<img src="/Outputs/1_sin.png"/>
+<img src="/Outputs/sine/1_sin.png"/>
 4 sin waves
-<img src="/Outputs/4_sin.png"/>
+<img src="/Outputs/sine/4_sin.png"/>
 8 sin waves
-<img src="/Outputs/8_sin.png"/>
+<img src="/Outputs/sine/8_sin.png"/>
+
+Perlin Noise clouds and procedural moon:
+
+<img src="/Outputs/clouds/1515137559.png"/>
+
 
 Random color implementation:
 
-<img src="/Finals/seed70.png"/>
-<img src="/Finals/seed51.png"/>
-<img src="/Finals/seed72.png"/>
+<img src="/Outputs/final.png"/>

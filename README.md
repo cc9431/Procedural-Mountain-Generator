@@ -12,10 +12,11 @@ How the amount of random sin waves affects mountain's "natural" look:
 8 sin waves
 <img src="/Outputs/sine/8_sin.png"/>
 
+Perlin Noise clouds and procedural moon:
+
+<img src="/Outputs/clouds/1515136483.png"/>
+
+
 Random color implementation:
 
 <img src="/Outputs/final.png"/>
-
-Adding clouds:
-
-<img src="/Outputs/clouds/seed1513791407.png"/>

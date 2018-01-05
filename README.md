@@ -19,4 +19,4 @@ Perlin Noise clouds and procedural moon:
 
 Random color implementation:
 
-<img src="/Outputs/final.png"/>
+<img src="/Outputs/final.png" width=600/>

@@ -14,7 +14,7 @@ How the amount of random sin waves affects mountain's "natural" look:
 
 Perlin Noise clouds and procedural moon:
 
-<img src="/Outputs/clouds/1515136483.png" width=1000/>
+<img src="/Outputs/clouds/1515137559.png"/>
 
 
 Random color implementation:

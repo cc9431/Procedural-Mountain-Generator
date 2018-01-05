@@ -56,11 +56,12 @@ class Generator(object):
         self.data           = list          # Stored variables of sine wave functions
         self.output         = [[tuple(self.sky_color) for x in range(self.image_width)]
                                for y in range(self.image_height)]
+        self.moon_location = random.randint(0, self.image_width - 10)
 
         ##-=-=-=- Creation -=-=-=-=-=-=-=-=-=-=-=-=-##
         self.pnf.randomize()                # Randomize perlin noise
         self.generate_ranges()              # Generate variables for sine functions
-        self.create_moon(random.randint(0, self.image_width - 10), 2)
+        self.create_moon(self.moon_location, 2)
         self.create_scene()                 # Assign values to pixels
         self.show_image()
         if prnt:
@@ -70,6 +71,7 @@ class Generator(object):
         '''String representation of Generator'''
         string = "Image Width:\t" + str(self.image_width)
         string += "\nSeed:\t\t" + str(self.rand_seed)
+        string += "\nMoon Location:\t\t" + str(self.moon_location)
 
         return string
 
